@@ -1,0 +1,89 @@
+<html>
+<head>
+  <title>Waste Management Bins</title>
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+  <link rel="stylesheet" href="./MarkerCluster.css"/>
+  <link rel="stylesheet" href="./MarkerCluster.Default.css">
+  <script src="./leaflet.markercluster.js"></script>
+  <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/leaflet.markercluster.js"></script>
+
+  <script src="jquery-2.1.1.min.js"></script> 
+  <style>
+    #map{ width: 900px; height: 500px; }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+
+  <script>
+
+  // initialize the map
+  var map = L.map('map').setView([25.2489, 55.3061], 16);
+
+  // load a tile layer
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 21
+      //minZoom: 9
+    }).addTo(map);
+
+   $.getJSON("dubai_polygon.geojson",function(hoodData){
+    L.geoJson(hoodData,{
+    style: function(feature){
+      var fillColor,
+          bin = feature.properties.bin_level;
+      if ( bin > 80 ) fillColor = "#006837";
+      else if ( bin > 60 ) fillColor = "#31a354";
+      else if ( bin > 20 ) fillColor = "#78c679";
+      else if ( bin > 10 ) fillColor = "#c2e699";
+      else if ( bin > 0 ) fillColor = "#ffffcc";
+      else fillColor = "#f7f7f7";  // no data
+      return { color: "#999", weight: 1, fillColor: fillColor, fillOpacity: .6 };
+    },
+    } ).addTo(map);
+    }); 
+
+  // load GeoJSON from an external file
+$.getJSON("devicesBin.geojson",function(data){
+    var blackIcon = L.icon({
+      iconUrl: 'blackBin.png',
+      iconSize: [24,24]
+    });
+
+    var greenIcon = L.icon({
+      iconUrl: 'greenBin.png',
+      iconSize: [24,24]
+    });
+
+    var redIcon = L.icon({
+      iconUrl: 'redBin.png',
+      iconSize: [24,24]
+    });
+
+    var orangeIcon = L.icon({
+      iconUrl: 'orangeBin.png',
+      iconSize: [24,24]
+    });
+
+
+    var binCollection = L.geoJson(data,{
+      pointToLayer: function(feature,latlng){
+        
+        var marker = L.marker(latlng,{icon: blackIcon});
+        marker.bindPopup('Device Name: '+feature.properties.device_name + '<br/>' + 'Device Model: '+ feature.properties.device_model+ '<br/>' + 'Firmware Version: '+ feature.properties.firmwareVersion+ '<br/>' +'Location: '+ feature.properties.latitude+ feature.properties.longitude+ '<br/>' +'Bin Level: '+ feature.properties.bin_level);;
+        return marker;
+      }
+    });
+    var clusters = L.markerClusterGroup();
+    clusters.addLayer(binCollection);
+    map.addLayer(clusters);
+  });
+ 
+
+  </script>
+</body>
+</html>

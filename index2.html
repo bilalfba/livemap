@@ -1,0 +1,115 @@
+<html>
+<head>
+  <title>Waste Management Bins</title>
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+  <link rel="stylesheet" href="./MarkerCluster.css"/>
+  <link rel="stylesheet" href="./MarkerCluster.Default.css">
+  <script src="./leaflet.markercluster.js"></script>
+  <script src="https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/leaflet.markercluster.js"></script>
+
+  <script src="jquery-2.1.1.min.js"></script> 
+  <style>
+    #map{ width: 900px; height: 500px; }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+
+  <script>
+
+  // initialize the map
+  var map = L.map('map').setView([25.2489, 55.3061], 16);
+
+  // load a tile layer
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 21
+      //minZoom: 9
+    }).addTo(map);
+
+   $.getJSON("dubai_polygon.geojson",function(hoodData){
+    L.geoJson(hoodData,{
+    style: function(feature){
+      var fillColor,
+          bin = feature.properties.bin_level;
+      if ( bin > 80 ) fillColor = "#006837";
+      else if ( bin > 60 ) fillColor = "#31a354";
+      else if ( bin > 20 ) fillColor = "#78c679";
+      else if ( bin > 10 ) fillColor = "#c2e699";
+      else if ( bin > 0 ) fillColor = "#ffffcc";
+      else fillColor = "#f7f7f7";  // no data
+      return { color: "#999", weight: 1, fillColor: fillColor, fillOpacity: .6 };
+    },
+    /**onEachFeature: function( feature, layer ){
+        layer.bindPopup( "<strong>" + feature.properties.device_name + "</strong><br/>" + feature.properties.bin_level + " bins per square mile" )
+      }**/
+    } ).addTo(map);
+    }); 
+
+  // load GeoJSON from an external file
+  $.getJSON("devicesBin.geojson",function(data){
+
+    var redBin = L.icon({
+    iconUrl: 'redBin.svg',
+    iconSize: [50,40]
+    });
+
+    var binIcon = L.Icon.extend({
+    options: {
+        iconSize:     [50, 40],
+        }
+    });
+
+
+    var greenIcon = new binIcon({iconUrl: 'greenBin.png'}),
+        redIcon = new binIcon({iconUrl: 'redBin.png'}),
+        orangeIcon = new binIcon({iconUrl: 'orangeBin.png'});
+        blackIcon = new binIcon({iconUrl: 'blackBin.png'});
+    // add GeoJSON layer to the map once the file is loaded
+    var bin = feature.properties.bin_level;
+    var bins = L.geoJson(data,{
+      pointToLayer: function(feature,latlng){
+        return L.marker(latlng, {icon: blackIcon});
+      },
+
+      onEachFeature: function(feature,layer)
+            {
+            if ( bin > 80 ){
+                layer.setIcon(redIcon)
+            };
+            if ( bin > 40 ){
+                layer.setIcon(orangeIcon)
+            };
+            if ( bin > 0 ){
+                layer.setIcon(greenIcon)
+            };
+            }
+
+        //var greenMarker = if (bin<20) L.marker(latlng,{icon: binIcon});
+
+        //var popup="bindPopup('Device Name: '+feature.properties.device_name + '<br/>' + 'Device Model: '+ feature.properties.device_model+ '<br/>' + 'Firmware Version: '+ feature.properties.firmwareVersion+ '<br/>' +'Location: '+ feature.properties.latitude+ feature.properties.longitude+ '<br/>' +'Bin Level: '+ feature.properties.bin_level);"
+        /**
+        var bin = feature.properties.bin_level;
+        if ( bin > 80 ) L.marker(latlng,{icon: redIcon}).popup;
+        else if ( bin > 40 ) L.marker(latlng,{icon: orangeIcon}).popup;
+        else if ( bin > 0 ) L.marker(latlng,{icon: greenIcon}).popup;
+        else L.marker(latlng,{icon: blackIcon}).popup
+        **/
+        //return L.marker(latlng,{icon: redIcon}).popup;
+      //}
+    });
+
+    var clusters = L.markerClusterGroup();
+    clusters.addLayer(bins);
+    map.addLayer(clusters);
+
+  });
+ 
+
+  </script>
+</body>
+</html>
