@@ -83,7 +83,7 @@ $.getJSON("devicesBin.geojson",function(data){
         return marker;
       }
     });
-    var clusters = L.markerClusterGroup();
+    var clusters = new L.MarkerClusterGroup();
     clusters.addLayer(binCollection);
     map.addLayer(clusters);
   });
